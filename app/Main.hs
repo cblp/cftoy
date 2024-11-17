@@ -1,19 +1,35 @@
+{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import Codeforces.API qualified as API
+import Codeforces.Types (Handle)
 import Codeforces.Types qualified
-import Control.Applicative
-import Control.Monad.IO.Class
-import Data.Text
+import Control.Applicative (asum)
+import Control.Monad.IO.Class (liftIO)
 import Data.Text qualified as Text
 import Telegram.Bot.API
+  ( Token (Token),
+    Update,
+    defaultTelegramClientEnv,
+    updateChatId,
+  )
 import Telegram.Bot.Simple
+  ( BotApp (BotApp),
+    Eff,
+    conversationBot,
+    replyText,
+    startBot_,
+    (<#),
+  )
+import Telegram.Bot.Simple qualified
 import Telegram.Bot.Simple.UpdateParser
-
-type Handle = Text
+  ( callbackQueryDataRead,
+    command,
+    parseUpdate,
+  )
 
 data Model = Model {}
 
@@ -37,16 +53,15 @@ todoBot3 =
     updateToAction :: Model -> Update -> Maybe Action
     updateToAction _ =
       parseUpdate $
-        Start <$ command "start"
-          <|> GetInfo <$> command "info"
-          <|> callbackQueryDataRead
+        asum
+          [ Start <$ command "start",
+            GetInfo <$> command "info",
+            callbackQueryDataRead
+          ]
 
     handleAction :: Action -> Model -> Eff Action Model
     handleAction action model = case action of
-      Start ->
-        model <# do
-          reply
-            (toReplyMessage startMessage)
+      Start -> model <# replyText startMessage
       GetInfo handle ->
         model <# do
           usr <- liftIO $ API.userInfo handle
@@ -54,10 +69,9 @@ todoBot3 =
             "User with handle "
               <> usr.handle
               <> " has rating "
-              <> pack (show usr.rating)
-    startMessage =
-      Text.unlines
-        ["Hello! I am your Codeforces helper bot"]
+              <> Text.pack (show usr.rating)
+
+    startMessage = "Hello! I am your Codeforces helper bot"
 
 run :: Token -> IO ()
 run token = do
