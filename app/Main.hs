@@ -1,13 +1,14 @@
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import qualified Codeforces.API as API
-import qualified Codeforces.Types as T
+import Codeforces.API qualified as API
+import Codeforces.Types qualified
 import Control.Applicative
 import Control.Monad.IO.Class
 import Data.Text
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Telegram.Bot.API
 import Telegram.Bot.Simple
 import Telegram.Bot.Simple.UpdateParser
@@ -48,8 +49,12 @@ todoBot3 =
             (toReplyMessage startMessage)
       GetInfo handle ->
         model <# do
-          usr <- liftIO $ API.userInfo $ unpack handle
-          replyText $ pack $ "User with handle " ++ T.handle usr ++ " has rating " ++ show (T.rating usr)
+          usr <- liftIO $ API.userInfo handle
+          replyText $
+            "User with handle "
+              <> usr.handle
+              <> " has rating "
+              <> pack (show usr.rating)
     startMessage =
       Text.unlines
         ["Hello! I am your Codeforces helper bot"]

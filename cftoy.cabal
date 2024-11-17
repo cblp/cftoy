@@ -22,12 +22,12 @@ executable cftoy
 
   build-depends:
     , aeson
-    , base                  ^>=4.18.2.1
-    , req
+    , base                 ^>=4.18.2.1
+    , lens
     , telegram-bot-api
     , telegram-bot-simple
     , text
-    , vector
+    , wreq
 
   hs-source-dirs:   app
   default-language: GHC2021
