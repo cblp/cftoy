@@ -1,0 +1,6 @@
+resolver: lts-22.40
+
+extra-deps:
+  - cron-0.7.2
+  - telegram-bot-api-7.4.2
+  - telegram-bot-simple-0.14.3
